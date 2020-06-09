@@ -1,6 +1,10 @@
 extern crate node;
 extern crate routing;
 
+use crypto::sha1::Sha1;
+
+// Use gRPC
+
 // In all RPCs, the recipient much echo a 160-bit random RPC ID, which 
 // provides some ressitance to address forgery. 
 //
@@ -27,8 +31,12 @@ fn ping() -> RPCResponse<bool> {
 }
 
 // Store instructs a node to store a <key, value> pair for later retrieval
-fn store() -> RPCResponse<None> {
-
+fn store(data: String) -> RPCResponse<None> {
+    // generate key as a hash of the value
+    let mut hasher = Sha1::new();
+    hasher.input_str(data);
+    let key = hasher.result_str();
+    
 }
 
 // Takes a 160-bit ID as an argument. 
