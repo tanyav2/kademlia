@@ -1,32 +1,33 @@
-use rand::Rng;
-use uint::construct_uint;
+use rand::{Rng};
 use std::net::{
     IpAddr,
     Ipv4Addr,
     SocketAddr,
 };
+use rug::{Integer, Assign};
+use rug::ops::{Pow, BitXorFrom};
 
-construct_uint! {
-    // 190-bit integer but we will only use 160 bits
-    // 3 x 64-bit integer
-    pub struct U192(3);
-}
-
-// this is big-endian
-// type NodeID = U192;
-type NodeID = u32;
+type NodeID = Integer;
 
 pub struct Value {
-    data: [u8; 10],
+    data: Vec<u8>,
 }
 
+impl Value {
+    pub fn new() -> Value {
+        let zero_vec = vec![0u8; 10];
+        Value {
+            data: zero_vec.clone(),
+        }
+    }
+}
 
 // Kademlia effectively treats nodes as leaves in a binary tree, 
 // with each node's position determined by the shortest unique prefix
 // of its ID. 
 pub struct Node {
-    id: u64,
-    // value: Value,
+    id: NodeID,
+    value: Value,
     // key: usize,   // 160-bit SHA1 hash of value
     // buckets: Vec<Bucket>,
     // left_child: &Node,
@@ -50,7 +51,7 @@ pub struct Bucket {
 
 pub struct Contact {
     socket: SocketAddr,
-    id: u64,
+    id: NodeID,
 }
 
 impl Bucket {
@@ -88,11 +89,18 @@ impl Bucket {
 impl Node {
 
     pub fn new() -> Node {
-        let mut rng = rand::thread_rng();
-        let base: u64 = 2; // TODO: fix this 
-        let gen_id = rng.gen_range(0, base.pow(60));
+
+        // Generate the key, then assign it to an ID
+        // let mut gen = OsRng::new().expect("Failed to get OS random generator");
+        // let mut random: Vec<u8> = repeat(0u8).take(20).collect();
+        // gen.fill_bytes(&mut key[..]);
+        // let mut rng = rand::thread_rng();
+        let base = Integer::from(2);
+        let power = base.pow(160);
+        // let gen_id = rng.gen_range(0, base.pow(60));
         Node {
-            id: gen_id,
+            id: power,
+            value: Value::new(),
 
         }
     }
